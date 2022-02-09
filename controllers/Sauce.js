@@ -5,7 +5,7 @@ const fs = require('fs');
 exports.createSauce =
 (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
-  delete sauceObject._id;
+  delete sauceObject._id; //retire la clé _id ajoutée automatiquement par mongoose
   const sauce = new Sauce({
     ...sauceObject,
     imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
@@ -25,9 +25,9 @@ exports.modifySauce =
     } : { ...req.body }
   Sauce.findOne({ _id: req.params.id })
   .then( sauce => {
-    if (req.auth.userId === sauce.userId) {
+    if (req.auth.userId === sauce.userId) { //vérifie l'identité de l'utilisateur
       if (req.file) {
-        fs.unlink(`images/${sauce.imageUrl.split('/images/')[1]}`, () =>{})
+        fs.unlink(`images/${sauce.imageUrl.split('/images/')[1]}`, () =>{}) //supprime l'image existante si une image est présente dans la requête
       }
       Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(res.status(200).json({ message: 'Objet modifié !'}))
@@ -45,7 +45,7 @@ exports.deleteSauce =
     if(!sauce) {
       return res.status(403).json ( {message: 'cette sauce n\'existe pas'} )
     }
-    if (req.auth.userId === sauce.userId) {
+    if (req.auth.userId === sauce.userId) { //vérifie l'identité de l'utilisateur
       const filename = sauce.imageUrl.split('/images/')[1];
       fs.unlink(`images/${filename}`, () => {
       Sauce.deleteOne({ _id: req.params.id })
@@ -53,7 +53,7 @@ exports.deleteSauce =
       .catch(error => res.status(400).json({ error }));
       });
     } else {
-      return res.status(403).json ( {message: 'cette requette n\'est pas autorisé'} )
+      return res.status(403).json ( {message: 'cette requête n\'est pas autorisé'} )
     }
   })
   .catch(error => res.status(500).json({ error }));
@@ -81,7 +81,7 @@ exports.likeSauce =
   User.findOne({_id: userId})
   .then(user => {
     if(!user){
-      return res.status(401).json( {message: 'cette requette n\'est pas autorisé'} );
+      return res.status(401).json( {message: 'cette requête n\'est pas autorisé'} );
     } else {
     Sauce.findOne({ _id: req.params.id })
     .then(async(sauce) => {
@@ -92,7 +92,7 @@ exports.likeSauce =
       if( likeStatus === -1 || likeStatus === 0 || likeStatus === 1 ){
         if (likeStatus === 0) {
           if (!usersDisliked.includes(userId) && !usersLiked.includes(userId)) { //l'utilisateur n'a ni liké ni disliké la sauce
-            return res.status(403).json( {message: 'cette requette n\'est pas autorisé'} );
+            return res.status(403).json( {message: 'cette requête n\'est pas autorisé'} );
           };
           if (usersLiked.includes(userId)) { //l'utilisateur a déjà liké la sauce
             sauce.likes -= 1;
@@ -109,7 +109,7 @@ exports.likeSauce =
         //ajoute le like
         if(likeStatus === 1) { // L'utilisateur like la sauce
           if(usersLiked.includes(userId) || usersDisliked.includes(userId)){ //l'utilisateur a déjà liké ou disliké la sauce
-            return res.status(403).json( {message: 'cette requette n\'est pas autorisé'} );
+            return res.status(403).json( {message: 'cette requête n\'est pas autorisé'} );
           };
           if (!usersDisliked.includes(userId) && !usersLiked.includes(userId)) { //l'utilisateur n'a ni liké ni disliké la sauce
             sauce.likes += 1;
@@ -122,7 +122,7 @@ exports.likeSauce =
         //ajoute le dislike
         if(likeStatus === -1) {
           if (usersDisliked.includes(userId) || usersLiked.includes(userId)) { //l'utilisateur a déjà disliké ou liké la sauce
-            return res.status(403).json( {message: 'cette requette n\'est pas autorisé'} );
+            return res.status(403).json( {message: 'cette requête n\'est pas autorisé'} );
           };
           if (!usersDisliked.includes(userId) && !usersLiked.includes(userId)) { //l'utilisateur n'a ni liké ni disliké la sauce
             sauce.dislikes += 1;
@@ -133,7 +133,7 @@ exports.likeSauce =
         };
 
       } else {
-        res.status(400).json( {message: 'cette requette n\'est pas autorisé'} )};
+        res.status(400).json( {message: 'cette requête n\'est pas autorisé'} )};
       })
     .catch(error => res.status(500).json({ error }));
     };

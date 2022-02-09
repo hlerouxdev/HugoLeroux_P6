@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const bodyParser = require('body-parser');
 const { xss } = require('express-xss-sanitizer');
 const mongoose = require('mongoose');
 const sauceRoutes = require('./routes/sauce');
@@ -9,8 +8,6 @@ const path = require('path');
 const security = require('./security/secret');
 
 app.use(express.json());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(xss());
 
 mongoose.connect(`mongodb+srv://${security.mongooseUser}@${security.mongooseUri}?retryWrites=true&w=majority`,

@@ -6,21 +6,17 @@ const validator = require('validator');
 
 exports.signup =
 (req, res, next) => {
-  if(!validator.isEmail(req.body.email)){
+  if(!validator.isEmail(req.body.email)){ //vérifie l'adresse mail
     return res.status(400).json({ message: 'l\'adresse mail que vous avez entrée n\'est pas une addresse mail valide' })
   };
-  if(!validator.isLength(req.body.password, 8)){
-    return res.status(400).json({ message: 'votre mot de passe doit contenir au moins 8 charactères' })
+  if(!validator.isLength(req.body.password, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1})){ //vérifie que le mdp fasse plus de 8 charactères et contienne bien plusieurs charactères différents
+    return res.status(400).json({ message: 'votre mot de passe doit contenir au moins 8 charactères, au moins une lettre minuscule, une majuscule, un chiffre et un charctère spécial' })
   };
-  if(!/(?=.*?[0-9])(?=.*?[A-Za-z]).+/.test(req.body.password)){
-    return res.status(400).json({ message: 'votre mot de passe doit contenir au moins une lettre et un chiffre' })
-  }
-  bcrypt.hash(req.body.password, 10)
+  bcrypt.hash(req.body.password, 10) //hash le mdp 10 fois
   .then(hash => {
-    const user = new User({
+    const user = new User({ //créé le nouvel utilisateur 
       email: req.body.email,
-      password: hash,
-      passCheck: 0
+      password: hash
     });
     user.save()
       .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
@@ -35,14 +31,14 @@ exports.login = (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: 'Utilisateur non trouvé !' });
     }
-    bcrypt.compare(req.body.password, user.password)
+    bcrypt.compare(req.body.password, user.password) //vérifie le hash du mdp
     .then(valid => {
       if (!valid) {
         return res.status(401).json({ message: `Mot de passe incorrect !` })
       } else {
         res.status(200).json({
           userId: user._id,
-          token: jwt.sign(
+          token: jwt.sign( //créé le token
             { userId: user._id },
             security.secretToken,
             { expiresIn: '12h' }
