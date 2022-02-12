@@ -9,7 +9,7 @@ const limiter = {
      }),
      mod: rateLimit({
           windowMs: 10 * 60 * 1000, // 10 minutes
-          max: 10, // Limit each IP to 10 requests per `window` (here, per 10 minutes)
+          max: 20, // Limit each IP to 20 requests per `window` (here, per 10 minutes)
           standardHeaders: true,
           legacyHeaders: false,
      }),
