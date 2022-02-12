@@ -7,28 +7,27 @@ const validator = require('validator');
 exports.signup =
 (req, res, next) => {
   const mailValid = validator.isEmail(req.body.email);
-  const passwordValid = validator.isLength(req.body.password, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1});
+  const passwordValid = validator.isStrongPassword(req.body.password, { minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1});
 
-  if(mailValid && passwordValid){
-    bcrypt.hash(req.body.password, 10) //hash le mdp 10 fois
-  .then(hash => {
-    const user = new User({ //créé le nouvel utilisateur 
-      email: req.body.email,
-      password: hash
-    });
-    console.log('test2')
-    user.save()
-      .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-      .catch(error => res.status(400).json({ error }));
-  })
-  .catch(error => res.status(500).json({ error }));
-  } else {
+  if(!mailValid || !passwordValid){
     if(!mailValid){ //vérifie l'adresse mail
       return res.status(400).json({ message: 'l\'adresse mail que vous avez entrée n\'est pas une addresse mail valide' })
     };
     if(!passwordValid){ //vérifie que le mdp fasse plus de 8 charactères et contienne bien plusieurs charactères différents
-      return res.status(400).json({ message: 'votre mot de passe doit contenir au moins 8 charactères, au moins une lettre minuscule, une majuscule, un chiffre et un charctère spécial' })
+      return res.status(400).json({ message: 'votre mot de passe doit contenir au moins 8 charactères, dont une lettre minuscule, une majuscule, un chiffre et un charctère spécial' })
     };
+  } else {
+    bcrypt.hash(req.body.password, 10) //hash le mdp 10 fois
+    .then(hash => {
+      const user = new User({ //créé le nouvel utilisateur 
+        email: req.body.email,
+        password: hash
+      });
+      user.save()
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+        .catch(error => res.status(400).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
   }
 };
 
